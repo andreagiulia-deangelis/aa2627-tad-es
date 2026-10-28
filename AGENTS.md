@@ -8,9 +8,9 @@ Rispondere e scrivere in italiano, commenti nel codice compresi.
 
 ## Struttura e nomi delle cartelle
 
-Nella radice stanno l'elenco dei lavori (`index.html`) e i file di servizio. Ogni attività ha la sua cartella, creata quando serve, con `index.html`, `sketch.js`, un `style.css` proprio e un `README.md` che mostra l'anteprima: niente file condivisi fra le cartelle, perché ogni esercitazione ha bisogno di pochissimo stile e le conviene tenerlo per sé.
+Nella radice stanno l'elenco dei lavori (`index.html`) e i file di servizio. Ogni attività ha la sua cartella, creata quando serve, con `index.html`, `sketch.js` e un `style.css` proprio: niente file condivisi fra le cartelle, perché ogni esercitazione ha bisogno di pochissimo stile e le conviene tenerlo per sé.
 
-Nella cartella va anche `preview.png`, l'immagine del lavoro finito, che lo studente crea quando il lavoro è pronto: serve all'anteprima nella pagina delle revisioni del corso, ed è richiesta dalle specifiche di ogni attività. Il `README.md` della cartella la mostra, quindi se manca si vede.
+Nella cartella va anche `preview.png`, l'immagine del lavoro finito, che lo studente crea quando il lavoro è pronto: è l'anteprima nell'elenco dei lavori, cioè l'`index.html` della radice, che la cerca da solo in ogni cartella, e nella pagina delle revisioni del corso, ed è richiesta dalle specifiche di ogni attività. Finché manca, l'elenco mostra al suo posto un riquadro che lo dice. Il nome va scritto tutto in minuscolo: GitHub Pages distingue le maiuscole, e `Preview.png` nel lavoro pubblicato non si vedrebbe.
 
 I nomi ammessi sono **`es1`, `es2`, …**, in minuscolo e senza spazi: sono gli stessi delle consegne sul sito, e su di essi si costruiscono sia l'indirizzo del lavoro pubblicato sia il collegamento con la consegna. Un nome diverso rompe tutte e due le cose.
 
@@ -55,4 +55,4 @@ dove `<cartella>` è il nome della cartella su cui si sta lavorando: `es1`, `es2
 - Non inserire dati personali nelle conversazioni con il modello.
 - **Rispondere in modo asciutto.** Alla fine di un'operazione bastano il risultato e la prossima mossa: niente riepiloghi di quello che si è appena fatto, niente avvertenze ovvie o ripetute. Chi legge deve trovare il messaggio principale senza cercarlo.
 - **Per leggere, cercare ed elencare i file usare gli strumenti dell'agente**, non i comandi di shell come `ls`, `grep`, `cat` o `find`: gli strumenti lavorano senza chiedere permessi, la shell no, e ogni richiesta in più interrompe lo studente senza motivo.
-- **Un comando di shell per volta**, senza concatenarli con `&&`. I permessi di `opencode.json` valgono per il comando intero: `git diff --stat && git status --short` non corrisponde a nessuna regola e fa comparire una richiesta di conferma che i due comandi, dati separatamente, non avrebbero prodotto.
+- **Un comando di shell per volta**, senza concatenarli con `&&` e senza cicli. OpenCode controlla ogni comando della catena per conto suo, ma basta che uno solo non sia fra quelli liberi in `opencode.json` perché la richiesta di conferma mostri la catena intera, che lo studente fatica a leggere e a valutare.

@@ -1,5 +1,7 @@
 # Tecnologie e applicazioni digitali 2026/27: esercitazioni
 
+Lavori pubblicati: https://andreagiulia-deangelis.github.io/aa2627-tad-es/
+
 Repository personale per le esercitazioni del corso di **Tecnologie e applicazioni digitali**, Accademia di Belle Arti di Frosinone.
 
 Le specifiche precise, con obiettivi, vincoli e modalità di realizzazione, si trovano nella sezione [Attività](https://codestesie.it/aa2627/tad/attivita/) del sito del corso.
@@ -51,7 +53,7 @@ Da qui in avanti si lavora **in Visual Studio Code**, nella cartella scaricata s
    Si scrive un messaggio che dica che cosa è stato fatto, si preme *Commit* e poi *Sincronizza*.
    > Il messaggio non è facoltativo: senza, il pulsante *Commit* non conclude niente, ed è il motivo per cui a volte sembra che non funzioni. Bastano poche parole, come «prima versione di es1» o «colori più scuri e sfondo nero».
 
-Dopo circa un minuto il lavoro è online all'indirizzo `https://NOMEUTENTE.github.io/aa2627-tad-es/es1/`, con il proprio nome utente di GitHub al posto di `NOMEUTENTE` e la cartella giusta al posto di `es1`.
+Dopo circa un minuto il lavoro è online all'indirizzo `https://andreagiulia-deangelis.github.io/aa2627-tad-es/es1/`, con la cartella giusta al posto di `es1`.
 
 Le cartelle si chiamano `es1`, `es2` e così via: sono gli stessi nomi delle consegne sul sito, e non sono nomi liberi, perché su quelli si costruiscono l'indirizzo del lavoro pubblicato e il collegamento con la consegna.
 
@@ -68,16 +70,17 @@ Non è necessario nessun account Google per compilare il modulo.
 
 **La revisione arriva nella chat di Teams**, non qui. Se dopo la consegna si continua a lavorare sulla stessa esercitazione, si rifà la consegna: vale l'ultima.
 
-> Se l'indirizzo serve senza passare dal `/consegna`, si pubblica il lavoro con Commit e Sincronizza, si apre nel browser il proprio elenco dei lavori, `https://NOMEUTENTE.github.io/aa2627-tad-es/`, si entra nella cartella dell'esercitazione e si copia l'indirizzo dalla barra. Attenzione a non confonderlo con quello di Live Server, che comincia per `127.0.0.1` e funziona solo sul proprio computer.
+> Se l'indirizzo serve senza passare dal `/consegna`, si pubblica il lavoro con Commit e Sincronizza, si apre nel browser il proprio elenco dei lavori, `https://andreagiulia-deangelis.github.io/aa2627-tad-es/`, si entra nella cartella dell'esercitazione e si copia l'indirizzo dalla barra. Attenzione a non confonderlo con quello di Live Server, che comincia per `127.0.0.1` e funziona solo sul proprio computer.
 
 ## I comandi di OpenCode
 
-Quattro comandi sono stati scritti per questo corso e funzionano solo in questo repository:
+Cinque comandi sono stati scritti per questo corso e funzionano solo in questo repository:
 
 - `/inizio`: scrive il proprio nome e l'indirizzo pubblico del repository;
 - `/crea es1`: crea la cartella dell'esercitazione, leggendo la consegna dal sito del corso;
 - `/verifica es1`: confronta il lavoro con i vincoli della consegna e dice quali non sono rispettati;
-- `/consegna es1`: controlla, pubblica e ricorda l'indirizzo da segnalare.
+- `/consegna es1`: controlla, pubblica e ricorda l'indirizzo da segnalare;
+- `/aggiorna`: porta i file del corso all'ultima versione del modello, senza toccare le esercitazioni.
 
 Gli altri sono di OpenCode e funzionano in qualsiasi cartella. I più utili:
 

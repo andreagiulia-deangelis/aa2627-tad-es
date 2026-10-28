@@ -9,13 +9,33 @@ Prima di tutto il nome della cartella. Se `$1` è una variante riconoscibile di 
 Se `$1` è il **progetto**, in qualunque forma («progetto», «project», «il progetto finale»), fermarsi senza creare niente: il progetto va in un repository che lo studente crea da sé, con il nome che preferisce, e le istruzioni stanno nella sua consegna, `https://codestesie.it/aa2627/tad/attivita/progetto/`.
 
 1. Leggere le specifiche su `https://codestesie.it/aa2627/tad/attivita/<cartella>/`. Se l'indirizzo non risponde, avvisare e fermarsi: l'attività non è ancora stata pubblicata. Se in cima alla pagina c'è l'avviso «Specifiche da definire», dirlo e chiedere se aspettare la versione definitiva: la cartella si crea solo se lo studente conferma.
-2. Creare la cartella con quattro file.
+2. Creare la cartella con tre file.
    - `index.html`: pagina in italiano con `<meta charset="utf-8">`, il titolo dell'attività, lo script di p5.js `https://cdn.jsdelivr.net/npm/p5@2.3.3/lib/p5.min.js`, il proprio `style.css` e `sketch.js`.
-   - `style.css`: solo l'essenziale, cioè margini a zero e la tela come blocco.
+   - `style.css`: esattamente questo, che tiene la tela al centro della finestra, con gli eventuali controlli creati dallo sketch subito sotto:
+
+     ```css
+     html, body {
+       margin: 0;
+       padding: 0;
+     }
+
+     /* la tela al centro della finestra; se è più grande, parte dall'angolo
+        in alto a sinistra e la pagina scorre, invece di tagliarne i bordi */
+     body {
+       min-height: 100vh;
+       display: flex;
+       flex-direction: column;
+       justify-content: safe center;
+       align-items: safe center;
+     }
+
+     canvas {
+       display: block;
+     }
+     ```
    - `sketch.js`: in cima, come commenti, l'obiettivo dell'attività e l'elenco dei vincoli ricavati dalle specifiche.
-   - `README.md`: il titolo con il nome dell'attività, l'immagine dell'anteprima scritta come `![Anteprima del lavoro](preview.png)`, la riga con l'indirizzo pubblico del lavoro ricavato dal remoto Git, e una riga che dica che `preview.png` va creata quando il lavoro è pronto, perché serve all'anteprima nella pagina delle revisioni del corso. GitHub mostra il README sotto l'elenco dei file della cartella: finché l'immagine non c'è si vede il segno di un'immagine mancante, ed è il modo più semplice per accorgersene.
 3. Scrivere in `sketch.js` un **contenitore vuoto**: `setup()` con la tela delle dimensioni richieste dalle specifiche, e `draw()` vuota. Niente disegno e niente soluzione: lo sketch si riempie a poco a poco con quello che decide lo studente.
-4. Aggiungere la voce all'elenco nell'`index.html` della radice, togliendo la riga «Ancora nessun lavoro pubblicato» se è ancora lì.
+4. Aggiungere la voce all'elenco nell'`index.html` della radice, nella forma `<li><a href="es1/">Es1. Titolo</a></li>`, con la cartella giusta e il titolo dell'attività preso dalle specifiche, e togliere la riga «Ancora nessun lavoro pubblicato» se è ancora lì. L'anteprima non va scritta: la pagina la aggiunge da sola leggendo `preview.png` nella cartella, e finché l'immagine manca mostra al suo posto un riquadro che lo dice.
 5. Chiudere con due cose sole. Come vedere lo sketch: il pulsante **Go Live** nella barra in basso a destra di Visual Studio Code, aggiunto dall'estensione Live Server, apre nel browser l'elenco dei lavori, da cui si entra nella cartella. Poi **una domanda sola**: da che cosa vuole partire. Incoraggiare a rispondere con un procedimento (quali forme, quale regola, che cosa si ripete o cambia) più che con la descrizione del risultato finale.
 
 **Non proporre un elenco di direzioni da scegliere**: l'idea deve venire da lui, altrimenti l'esercitazione diventa una scelta fra opzioni preconfezionate e i lavori si somigliano tutti.

@@ -1,0 +1,18 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* la tela al centro della finestra; se è più grande, parte dall'angolo
+   in alto a sinistra e la pagina scorre, invece di tagliarne i bordi */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  align-items: safe center;
+}
+
+canvas {
+  display: block;
+}

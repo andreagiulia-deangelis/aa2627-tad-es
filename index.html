@@ -7,25 +7,90 @@
   <style>
     body {
       margin: 0;
-      padding: 2rem;
+      padding: 3rem 2rem 4rem;
       font-family: system-ui, sans-serif;
       line-height: 1.5;
-      color: #222;
+      color: #2b2b33;
       background: #fff;
     }
-    h1 { font-size: 1.4rem; font-weight: 600; }
-    ul { padding-left: 1.2rem; }
-    li { margin-bottom: 0.3rem; }
-    .vuoto { color: #777; }
+    main { max-width: 64rem; margin: 0 auto; }
+    h1 { margin: 0; font-size: 1.6rem; font-weight: 600; line-height: 1.25; }
+    h1 + p { margin: 0.25rem 0 2.5rem; color: #6b6b78; }
+
+    /* le voci dell'elenco diventano schede: anteprima sopra, nome sotto */
+    ul {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      gap: 2rem 1.5rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    a { display: block; color: inherit; text-decoration: none; }
+    a:focus-visible { outline: 2px solid #9060c0; outline-offset: 4px; }
+    .anteprima {
+      display: block;
+      aspect-ratio: 4 / 3;
+      margin-bottom: 0.6rem;
+      background: #f3f3f6;
+      border: 1px solid #e6e6ec;
+      transition: border-color 0.15s;
+    }
+    .anteprima img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    a:hover .anteprima { border-color: #6b6b78; }
+    a:hover .nome { text-decoration: underline; }
+    /* cartella senza preview.png */
+    .anteprima.mancante {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-style: dashed;
+      color: #6b6b78;
+      font-size: 0.85rem;
+    }
+    .anteprima.mancante::after { content: "preview.png non ancora creata"; }
+    .vuoto { grid-column: 1 / -1; color: #6b6b78; }
+
+    @media (max-width: 30rem) {
+      body { padding: 2rem 1rem 3rem; }
+    }
   </style>
 </head>
 <body>
-  <h1>Tecnologie e applicazioni digitali 2026/27</h1>
-  <p>Esercitazioni di <strong>Nome Cognome</strong>.</p>
+  <main>
+    <h1>Tecnologie e applicazioni digitali 2026/27</h1>
+    <p>Esercitazioni di <strong>andreagiulia-deangelis</strong>.</p>
 
-  <!-- Il comando /crea aggiunge qui una voce per ogni cartella creata. -->
-  <ul>
-    <li class="vuoto">Ancora nessun lavoro pubblicato.</li>
-  </ul>
+    <!-- Il comando /crea aggiunge qui una voce per ogni cartella creata, nella forma
+         <li><a href="es1/">Es1. Titolo</a></li>: l'anteprima la aggiunge lo script qui sotto. -->
+    <ul id="lavori">
+      <li><a href="es1/">Es1. Illusioni in movimento</a></li>
+    </ul>
+  </main>
+
+  <script>
+    // Ogni voce prende l'anteprima del lavoro, preview.png nella sua cartella;
+    // se l'immagine non c'è ancora, resta un riquadro che lo dice.
+    for (const link of document.querySelectorAll('#lavori a')) {
+      const nome = document.createElement('span');
+      nome.className = 'nome';
+      nome.append(...link.childNodes);
+
+      const anteprima = document.createElement('span');
+      anteprima.className = 'anteprima';
+      const img = document.createElement('img');
+      img.alt = '';
+      img.onerror = () => { img.remove(); anteprima.classList.add('mancante'); };
+      img.src = link.getAttribute('href').replace(/\/?$/, '/') + 'preview.png';
+      anteprima.append(img);
+
+      link.append(anteprima, nome);
+    }
+  </script>
 </body>
 </html>
