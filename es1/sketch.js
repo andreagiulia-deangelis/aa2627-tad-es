@@ -12,8 +12,14 @@
 //   passiSfumatura: effetto più evidente con il bordo sfumato; nessun effetto con il bordo netto
 //   raggioCircolo: effetto più evidente con il cerchio nero sfumato; nessun effetto con un cerchio netto
 //   fattoreRiduzione: riduce l'illusione per la preview; nessun effetto visivo di per sé
-//   passoRotazione: regola la velocità del movimento; nessun movimento non è l'illusione
-//   ampiezzaPulsazione: regola l'accorciamento della pulsazione; nessun effetto senza pulsazione
+//   scalaMassima: lunghezza dei raggi, mantenuta costante al valore massimo
+//   ampiezzaVariazioneLunghezza: variazione graduale della lunghezza dei raggi
+//   fattoreSpessoreRaggiSpeciali: quanto i due raggi speciali superano gli altri
+//   fattoreSpessoreMassimo: differenza massima fra il raggio più sottile e quello più largo
+//   esponenteProgressione: regola quanto rapidamente aumentano gli spessori
+//   durataProgressione: durata dell'alternanza fra spessori uniformi e progressione
+//   ampiezzaSpostamentoAngolare: limita quanto i raggi si allontanano dalle posizioni regolari
+//   frequenzaMovimentoAngolare e margineSovrapposizioneRaggi: movimento e copertura fra i raggi
 
 const larghezzaTela = 800;
 const altezzaTela = 600;
@@ -30,17 +36,21 @@ const passiSfumatura = 16;
 
 // i raggi che si diramano dal centro verso i bordi
 const numeroRaggi = 180;
-const spessoreMassimo = 8;      // in pixel: il tratto più forte tra i raggi normali
+const spessoreMinimo = 8;       // in pixel: spessore dei raggi quando sono uniformi
+const fattoreSpessoreMassimo = 4; // il raggio più largo arriva a quattro volte il più sottile
+const fattoreSpessoreRaggiSpeciali = 3; // spessore iniziale dei due raggi speciali
+const esponenteProgressione = 4;
+const durataProgressione = 360; // in fotogrammi: durata di un ciclo completo
 const raggioCampo = 350;        // in pixel: distanza oltre la quale i raggi arrivano ai bordi
 const fattoreRiduzione = 0.75;  // riduzione dell'illusione: la versione in preview è più piccola
+const ampiezzaSpostamentoAngolare = 0.3; // in radianti: mantiene regolare la distanza fra i raggi
+const frequenzaMovimentoAngolare = 0.005; // velocità dell'oscillazione dei raggi
+const margineSovrapposizioneRaggi = 1.05; // evita che si aprano spazi fra i raggi
 
-// il movimento: i raggi ruotano attorno al centro in senso orario
-const passoRotazione = 0.003;   // in radianti per fotogramma: un giro completo ogni ~35 secondi
+// il movimento: il verso varia gradualmente, senza accumulare spazi vuoti
 
-// la pulsazione: i raggi si accorciano e poi si espandono
-const ampiezzaPulsazione = 0.2;   // accorciamento massimo dei raggi, fra 0 e 1
-const scalaMassima = 1.6;         // espansione massima: porta i raggi oltre il riquadro
-const lunghezzaPulsazione = 180; // in fotogrammi: durata di una pulsazione completa
+const scalaMassima = 2.2; // i raggi restano sempre a questa lunghezza
+const ampiezzaVariazioneLunghezza = 0.1; // i raggi variano gradualmente fra il 90% e il 110%
 
 function setup() {
   createCanvas(larghezzaTela, altezzaTela);
@@ -50,17 +60,9 @@ function setup() {
 function draw() {
   background(coloreSfondo);
 
-  const angolo = frameCount * passoRotazione;
-  disegnaRaggi(angolo);
+  const faseProgressione = (1 - cos(TWO_PI * frameCount / durataProgressione)) / 2;
+  disegnaRaggi(faseProgressione);
   disegnaCercolo();
-}
-
-// la pulsazione: restituisce la scala attuale, tra l'accorciamento minimo e l'espansione massima
-function fattorePulsazione() {
-  const fase = (frameCount % lunghezzaPulsazione) / lunghezzaPulsazione;
-  const angoloPulsazione = fase * TWO_PI;
-  const scalaMinima = 1 - ampiezzaPulsazione;
-  return scalaMinima + (scalaMassima - scalaMinima) * (1 - cos(angoloPulsazione)) / 2;
 }
 
 // il cerchio nero pieno sfumato: tratti concentrici con opacità crescente
@@ -79,36 +81,98 @@ function disegnaCercolo() {
   }
 }
 
-// i raggi: un triangolo per angolo, con il vertice al centro e la base alla
-// fine del raggio. Il triangolo si fa più sottile man mano che ci si avvicina
-// al centro, e tutti i raggi si accumulano sul punto centrale, creando la
-// densità.
-function disegnaRaggi(angolo) {
+// La lunghezza varia in modo continuo attorno al centro e lo spessore passa
+// gradualmente da uniforme a esponenziale lungo la circonferenza.
+function disegnaRaggi(faseProgressione) {
   const centroX = larghezzaTela / 2;
   const centroY = altezzaTela / 2;
+  const scala = fattoreRiduzione * scalaMassima;
 
   noStroke();
+  const faseMovimento = frameCount * frequenzaMovimentoAngolare;
+  const direzioni = [];
+  const lunghezze = [];
+  const larghezzeAngolari = [];
+
   for (let i = 0; i < numeroRaggi; i++) {
-    const direzione = angolo + i * TWO_PI / numeroRaggi;
-
-    // i due raggi speciali, disegnati negli indici opposti, sono più spessi e neri
-    const raggioMaggiore = i === 0 || i === Math.round(numeroRaggi / 2);
-    const spessoreRaggio = raggioMaggiore ? spessoreMassimo * 2 : spessoreMassimo;
-    fill(raggioMaggiore ? coloreNero : (i % 2 === 0 ? coloreBianco : coloreNero));
-
-    // ogni raggio è un triangolo: vertice al centro, base alla fine del raggio;
-    // la base ha larghezza pari allo spessore finale, quindi la forma mantiene
-    // le proporzioni di spessore del disegno precedente
-    const baseRaggio = raggioCampo * fattoreRiduzione * fattorePulsazione();
-    const mezzoLarghezza = spessoreRaggio * fattoreRiduzione * fattorePulsazione() / 2;
-
-    triangle(
-      centroX,
-      centroY,
-      centroX + cos(direzione) * baseRaggio - sin(direzione) * mezzoLarghezza,
-      centroY + sin(direzione) * baseRaggio + cos(direzione) * mezzoLarghezza,
-      centroX + cos(direzione) * baseRaggio + sin(direzione) * mezzoLarghezza,
-      centroY + sin(direzione) * baseRaggio - cos(direzione) * mezzoLarghezza
+    const direzione = direzioneRaggio(i, faseMovimento);
+    const direzionePrecedente = direzioneRaggio(i - 1, faseMovimento);
+    const direzioneSuccessiva = direzioneRaggio(i + 1, faseMovimento);
+    const spaziaturaAngolare = max(
+      direzione - direzionePrecedente,
+      direzioneSuccessiva - direzione
     );
+    const fattoreLunghezza =
+      1 + ampiezzaVariazioneLunghezza * sin(TWO_PI * i / numeroRaggi);
+    const posizione = i / (numeroRaggi - 1);
+    const progressioneEsponenziale =
+      (Math.exp(esponenteProgressione * posizione) - 1) /
+      (Math.exp(esponenteProgressione) - 1);
+    const fattoreSpessoreNormale =
+      1 + (fattoreSpessoreMassimo - 1) * faseProgressione * progressioneEsponenziale;
+    const raggioSpeciale = i === 0 || i === Math.round(numeroRaggi / 2);
+    const fattoreSpessore = raggioSpeciale
+      ? fattoreSpessoreRaggiSpeciali
+        + (fattoreSpessoreMassimo - 1) * faseProgressione
+      : fattoreSpessoreNormale;
+    const spessoreMinimoPerCopertura =
+      raggioCampo * fattoreLunghezza * spaziaturaAngolare * margineSovrapposizioneRaggi;
+    const spessoreRaggio = max(
+      spessoreMinimo * fattoreSpessore,
+      spessoreMinimoPerCopertura
+    );
+    direzioni.push(direzione);
+    lunghezze.push(fattoreLunghezza);
+    larghezzeAngolari.push(spessoreRaggio / (raggioCampo * fattoreLunghezza));
   }
+
+  for (let i = 0; i < numeroRaggi; i++) {
+    const indicePrecedente = (i - 1 + numeroRaggi) % numeroRaggi;
+    const indiceSuccessivo = (i + 1) % numeroRaggi;
+    const direzionePrecedente = i === 0
+      ? direzioni[indicePrecedente] - TWO_PI
+      : direzioni[indicePrecedente];
+    const direzioneSuccessiva = i === numeroRaggi - 1
+      ? direzioni[indiceSuccessivo] + TWO_PI
+      : direzioni[indiceSuccessivo];
+    const confineSinistro = confineAngolare(
+      direzionePrecedente,
+      direzioni[i],
+      larghezzeAngolari[indicePrecedente],
+      larghezzeAngolari[i]
+    );
+    const confineDestro = confineAngolare(
+      direzioni[i],
+      direzioneSuccessiva,
+      larghezzeAngolari[i],
+      larghezzeAngolari[indiceSuccessivo]
+    );
+    const raggioSpeciale = i === 0 || i === Math.round(numeroRaggi / 2);
+    fill(raggioSpeciale || i % 2 === 1 ? coloreNero : coloreBianco);
+
+    const baseRaggio = raggioCampo * scala * lunghezze[i];
+    disegnaRaggio(centroX, centroY, confineSinistro, confineDestro, baseRaggio);
+  }
+}
+
+function confineAngolare(primo, secondo, larghezzaPrimo, larghezzaSecondo) {
+  return primo + (secondo - primo) * larghezzaPrimo /
+    (larghezzaPrimo + larghezzaSecondo);
+}
+
+function direzioneRaggio(indice, faseMovimento) {
+  const angoloBase = indice * TWO_PI / numeroRaggi;
+  return angoloBase
+    + ampiezzaSpostamentoAngolare * sin(2 * angoloBase + faseMovimento);
+}
+
+function disegnaRaggio(centroX, centroY, confineSinistro, confineDestro, baseRaggio) {
+  triangle(
+    centroX,
+    centroY,
+    centroX + cos(confineSinistro) * baseRaggio,
+    centroY + sin(confineSinistro) * baseRaggio,
+    centroX + cos(confineDestro) * baseRaggio,
+    centroY + sin(confineDestro) * baseRaggio
+  );
 }

@@ -1,8 +1,8 @@
-# Genera preview.png: il fotogramma iniziale dello sketch.
+# Genera preview.png: il fotogramma in cui la progressione è al massimo.
 #
 # p5.js gira solo nel browser, quindi questa copia minimale della logica di
 # sketch.js serve solo per produrre l'immagine di anteprima. Il fotogramma
-# mostrato è quello all'inizio, quando frameCount è zero.
+# usa le stesse dimensioni e gli stessi parametri del canvas.
 
 import math
 import os
@@ -12,9 +12,8 @@ import zlib
 LARGHEZZA = 800
 ALTEZZA = 600
 
-# riduzione dell'illusione: la preview deve essere più piccola, così che il
-# disegno non venga tagliato e si veda tutto comodamente
-SF = 0.75
+# La preview usa la stessa scala del canvas dello sketch.
+SF = 1
 
 BIANCO = (255, 255, 255, 255)
 NERO = (0, 0, 0, 255)
@@ -24,8 +23,17 @@ CENTRO_X = LARGHEZZA / 2
 CENTRO_Y = ALTEZZA / 2
 
 NUMERO_RAGGI = 180
-SPESSORE_MASSIMO = 8
-SPESSORE_RAGGIO_MAGGIORE = 16
+SPESSORE_MINIMO = 8
+FATTORE_SPESSORE_MASSIMO = 4
+FATTORE_SPESSORE_RAGGI_SPECIALI = 3
+ESPONENTE_PROGRESSIONE = 4
+AMPIEZZA_VARIAZIONE_LUNGHEZZA = 0.1
+AMPIEZZA_SPOSTAMENTO_ANGOLARE = 0.3
+FREQUENZA_MOVIMENTO_ANGOLARE = 0.005
+MARGINE_SOVRAPPOSIZIONE_RAGGI = 1.05
+SCALA_MASSIMA = 2.2
+FATTORE_RIDUZIONE = 0.75
+FRAME_COUNT = 180
 RAGGIO_CAMPO = 350
 RAGGIO_CIRCOLO = 110
 PASSI_SFUMATURA = 16
@@ -46,11 +54,11 @@ def sovrapponi(base, sopra, trasparenza):
 canvas = [[SFONDO for _ in range(LARGHEZZA)] for _ in range(ALTEZZA)]
 
 
-def riempie_triangolo(angolo, spessore, colore, scala):
+def riempie_triangolo(angolo, spessore, colore, scala, fattore_lunghezza):
     dx = math.cos(angolo)
     dy = math.sin(angolo)
     mezzo = spessore * SF * scala / 2
-    base_raggio = RAGGIO_CAMPO * SF * scala
+    base_raggio = RAGGIO_CAMPO * SF * scala * fattore_lunghezza
     bx1 = CENTRO_X + dx * base_raggio - dy * mezzo
     by1 = CENTRO_Y + dy * base_raggio + dx * mezzo
     bx2 = CENTRO_X + dx * base_raggio + dy * mezzo
@@ -70,20 +78,108 @@ def riempie_triangolo(angolo, spessore, colore, scala):
 
 
 def disegna_raggi():
-    angolo = 0  # frameCount = 0
-    scala = 0.8  # la pulsazione dello sketch al frame 0 accorcia i raggi allo 0,8
+    fase_progressione = (1 - math.cos(2 * math.pi * FRAME_COUNT / 360)) / 2
+    scala = FATTORE_RIDUZIONE * SCALA_MASSIMA
+    fase_movimento = FRAME_COUNT * FREQUENZA_MOVIMENTO_ANGOLARE
+    direzioni = []
+    lunghezze = []
+    larghezze_angolari = []
+
     for i in range(NUMERO_RAGGI):
-        direzione = angolo + i * (2 * math.pi) / NUMERO_RAGGI
-        raggio_maggiore = i == 0 or i == NUMERO_RAGGI // 2
-        spessore = SPESSORE_RAGGIO_MAGGIORE if raggio_maggiore else SPESSORE_MASSIMO
-        colore = NERO if (raggio_maggiore or i % 2 == 1) else BIANCO
-        riempie_triangolo(direzione, spessore, colore, scala)
+        direzione = direzione_raggio(i, fase_movimento)
+        direzione_precedente = direzione_raggio(i - 1, fase_movimento)
+        direzione_successiva = direzione_raggio(i + 1, fase_movimento)
+        spaziatura_angolare = max(
+            direzione - direzione_precedente,
+            direzione_successiva - direzione,
+        )
+        fattore_lunghezza = 1 + AMPIEZZA_VARIAZIONE_LUNGHEZZA * math.sin(
+            2 * math.pi * i / NUMERO_RAGGI
+        )
+        posizione = i / (NUMERO_RAGGI - 1)
+        progressione_esponenziale = (
+            math.exp(ESPONENTE_PROGRESSIONE * posizione) - 1
+        ) / (math.exp(ESPONENTE_PROGRESSIONE) - 1)
+        fattore_spessore_normale = (
+            1
+            + (FATTORE_SPESSORE_MASSIMO - 1)
+            * fase_progressione
+            * progressione_esponenziale
+        )
+        raggio_speciale = i == 0 or i == round(NUMERO_RAGGI / 2)
+        fattore_spessore = (
+            FATTORE_SPESSORE_RAGGI_SPECIALI
+            + (FATTORE_SPESSORE_MASSIMO - 1) * fase_progressione
+            if raggio_speciale
+            else fattore_spessore_normale
+        )
+        spessore = max(
+            SPESSORE_MINIMO * fattore_spessore,
+            RAGGIO_CAMPO
+            * fattore_lunghezza
+            * spaziatura_angolare
+            * MARGINE_SOVRAPPOSIZIONE_RAGGI,
+        )
+        direzioni.append(direzione)
+        lunghezze.append(fattore_lunghezza)
+        larghezze_angolari.append(spessore / (RAGGIO_CAMPO * fattore_lunghezza))
+
+    for i in range(NUMERO_RAGGI):
+        indice_precedente = (i - 1 + NUMERO_RAGGI) % NUMERO_RAGGI
+        indice_successivo = (i + 1) % NUMERO_RAGGI
+        direzione_precedente = direzioni[indice_precedente]
+        direzione_successiva = direzioni[indice_successivo]
+        if i == 0:
+            direzione_precedente -= 2 * math.pi
+        if i == NUMERO_RAGGI - 1:
+            direzione_successiva += 2 * math.pi
+
+        confine_sinistro = confine_angolare(
+            direzione_precedente,
+            direzioni[i],
+            larghezze_angolari[indice_precedente],
+            larghezze_angolari[i],
+        )
+        confine_destro = confine_angolare(
+            direzioni[i],
+            direzione_successiva,
+            larghezze_angolari[i],
+            larghezze_angolari[indice_successivo],
+        )
+        raggio_speciale = i == 0 or i == round(NUMERO_RAGGI / 2)
+        colore = NERO if raggio_speciale or i % 2 == 1 else BIANCO
+        angolo = (confine_sinistro + confine_destro) / 2
+        spessore = (
+            2
+            * RAGGIO_CAMPO
+            * lunghezze[i]
+            * math.tan((confine_destro - confine_sinistro) / 2)
+        )
+        riempie_triangolo(angolo, spessore, colore, scala, lunghezze[i])
+
+
+def confine_angolare(primo, secondo, larghezza_primo, larghezza_secondo):
+    return primo + (secondo - primo) * larghezza_primo / (
+        larghezza_primo + larghezza_secondo
+    )
+
+
+def direzione_raggio(indice, fase_movimento):
+    angolo_base = indice * (2 * math.pi) / NUMERO_RAGGI
+    return angolo_base + AMPIEZZA_SPOSTAMENTO_ANGOLARE * math.sin(
+        2 * angolo_base + fase_movimento
+    )
 
 
 def disegna_cerchio():
     centro_x = round(CENTRO_X)
     centro_y = round(CENTRO_Y)
-    raggio_max = (RAGGIO_CIRCOLO + 20) * SF
+    raggio_max = (
+        RAGGIO_CIRCOLO * FATTORE_RIDUZIONE + 20 * FATTORE_RIDUZIONE
+    ) / 2
+    raggio_min = (
+        RAGGIO_CIRCOLO * FATTORE_RIDUZIONE - 20 * FATTORE_RIDUZIONE
+    ) / 2
     x_min = max(0, round(CENTRO_X - raggio_max))
     x_max = min(LARGHEZZA - 1, round(CENTRO_X + raggio_max))
     y_min = max(0, round(CENTRO_Y - raggio_max))
@@ -92,9 +188,9 @@ def disegna_cerchio():
         for x in range(x_min, x_max + 1):
             distanza = math.sqrt((x - centro_x) ** 2 + (y - centro_y) ** 2)
             if distanza <= raggio_max:
-                raggio = min(max(distanza, (RAGGIO_CIRCOLO - 20) * SF), raggio_max)
+                raggio = min(max(distanza, raggio_min), raggio_max)
                 opacita = mappa(
-                    raggio, (RAGGIO_CIRCOLO - 20) * SF, raggio_max, 255, OPACITA_MINIMA
+                    raggio, raggio_min, raggio_max, 255, OPACITA_MINIMA
                 )
                 canvas[y][x] = sovrapponi(canvas[y][x], NERO, opacita)
 
