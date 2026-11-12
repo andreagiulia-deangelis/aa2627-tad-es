@@ -4,11 +4,12 @@
 // in campi più piccoli. I tre colori primari, piatti e saturi, sono separati
 // da linee nere e bilanciati da zone bianche e grigie, molto più luminose.
 
-const larghezzaTela = 800;
+const larghezzaTela = 600;
 const altezzaTela = 600;
 const dimensioneComposizione = 560;
-const posizioneComposizioneX = (larghezzaTela - dimensioneComposizione) / 2;
-const posizioneComposizioneY = (altezzaTela - dimensioneComposizione) / 2;
+const scalaComposizione = Math.min(larghezzaTela, altezzaTela) / dimensioneComposizione;
+const posizioneComposizioneX = (larghezzaTela - dimensioneComposizione * scalaComposizione) / 2;
+const posizioneComposizioneY = (altezzaTela - dimensioneComposizione * scalaComposizione) / 2;
 
 const saturazioneVivida = 90;
 const saturazioneSpenta = 78;
@@ -21,7 +22,6 @@ const luminositaGrigioVivido = 82;
 const luminositaGrigioSpento = 68;
 const luminositaSfondo = 88;
 const luminositaCarta = 97;
-const luminositaCornice = 76;
 const luminositaNero = 5;
 const tonoRosso = 0;
 const tonoGiallo = 42;
@@ -40,8 +40,6 @@ const ampiezzaVariazioneTonalita = 20;
 const frequenzaVariazioneTonalita = 0.025;
 const frequenzaVariazioneSaturazione = 0.025;
 let direzioneVariazioneTemporale = -1;
-const spessoreCornice = 4;
-
 const paletteColori = [
   { tono: tonoRosso, luminosita: luminositaRosso, fase: faseRosso },
   { tono: tonoGiallo, luminosita: luminositaGiallo, fase: faseGiallo },
@@ -65,12 +63,14 @@ const campitureGrigie = [
   { x: 218, y: 415, larghezza: 134, altezza: 80, indiceColore: indiceColoreGrigio }
 ];
 
-const riquadriCliccabili = campitureColorate.concat(campitureGrigie);
+const riquadriColorati = campitureColorate.concat(campitureGrigie);
 
 const campitureNere = [
   { x: 71, y: 352, larghezza: 147, altezza: 139 },
   { x: 218, y: 492, larghezza: 307, altezza: 37 }
 ];
+
+const riquadriCliccabili = riquadriColorati.concat(campitureNere);
 
 const lineeOrizzontali = [
   { x: 24, y: 76, larghezza: 502, spessore: 10 },
@@ -80,12 +80,13 @@ const lineeOrizzontali = [
   { x: 22, y: 420, larghezza: 52, spessore: 10 },
   { x: 217, y: 420, larghezza: dimensioneComposizione - 217, spessore: 10 },
   { x: 71, y: 490, larghezza: 147, spessore: 10 },
-  { x: 218, y: 523, larghezza: 307, spessore: 11 }
+  { x: 218, y: 492, larghezza: 129, spessore: 11 }
 ];
 
 const lineeVerticali = [
   { x: 74, y: 76, altezza: 459, spessore: 10 },
   { x: 141, y: 24, altezza: 49, spessore: 8 },
+  { x: 218, y: 350, altezza: 179, spessore: 10 },
   { x: 347, y: 20, altezza: 509, spessore: 10 },
   { x: 438, y: 212, altezza: 140, spessore: 9 },
   { x: 521, y: 27, altezza: 509, spessore: 10 }
@@ -94,6 +95,7 @@ const lineeVerticali = [
 let scartoTonalitaIniziale;
 let rotazioneOrdineColori = 0;
 let tempoVariazione = 0;
+let clicSuRiquadriNeri = 0;
 
 function setup() {
   createCanvas(larghezzaTela, altezzaTela);
@@ -105,13 +107,23 @@ function setup() {
 
 function draw() {
   tempoVariazione += direzioneVariazioneTemporale;
+  cursor(mouseSuRiquadroCliccabile() ? HAND : ARROW);
+  push();
+  translate(posizioneComposizioneX, posizioneComposizioneY);
+  scale(scalaComposizione);
   background(0, 0, luminositaSfondo);
   noStroke();
   fill(0, 0, luminositaCarta);
   rect(posizioneComposizioneX, posizioneComposizioneY, dimensioneComposizione, dimensioneComposizione);
 
-  fill(0, 0, luminositaNero);
-  for (const campo of campitureNere) {
+  for (let indiceCampo = 0; indiceCampo < campitureNere.length; indiceCampo++) {
+    const campo = campitureNere[indiceCampo];
+    const indiceCampoNero = clicSuRiquadriNeri % 2 === 1 ? 1 : 0;
+    if (clicSuRiquadriNeri === 0 || indiceCampo === indiceCampoNero) {
+      fill(0, 0, luminositaNero);
+    } else {
+      impostaColoreCampitura((clicSuRiquadriNeri - 1) % paletteColori.length);
+    }
     rect(
       posizioneComposizioneX + campo.x,
       posizioneComposizioneY + campo.y,
@@ -120,28 +132,9 @@ function draw() {
     );
   }
 
-  for (const campo of riquadriCliccabili) {
+  for (const campo of riquadriColorati) {
     const indiceColore = (campo.indiceColore + rotazioneOrdineColori) % paletteColori.length;
-    const colore = paletteColori[indiceColore];
-    const faseTonalita = tempoVariazione * frequenzaVariazioneTonalita + colore.fase;
-    const faseSaturazione = (1 - cos(
-      tempoVariazione * frequenzaVariazioneSaturazione + colore.fase
-    )) / 2;
-    if (indiceColore === indiceColoreGrigio) {
-      const luminosita = luminositaGrigioVivido
-        + (luminositaGrigioSpento - luminositaGrigioVivido) * faseSaturazione;
-      fill(0, 0, luminosita);
-    } else {
-      const tonalita = (
-        colore.tono
-        + scartoTonalitaIniziale
-        + ampiezzaVariazioneTonalita * sin(faseTonalita)
-        + giroTonalita
-      ) % giroTonalita;
-      const saturazione = saturazioneVivida
-        + (saturazioneSpenta - saturazioneVivida) * faseSaturazione;
-      fill(tonalita, saturazione, colore.luminosita);
-    }
+    impostaColoreCampitura(indiceColore);
     rect(
       posizioneComposizioneX + campo.x,
       posizioneComposizioneY + campo.y,
@@ -169,30 +162,48 @@ function draw() {
     );
   }
 
-  noFill();
-  stroke(0, 0, luminositaCornice);
-  strokeWeight(spessoreCornice);
-  rect(
-    posizioneComposizioneX + spessoreCornice / 2,
-    posizioneComposizioneY + spessoreCornice / 2,
-    dimensioneComposizione - spessoreCornice,
-    dimensioneComposizione - spessoreCornice
-  );
   noStroke();
+  pop();
 }
 
-function mousePressed() {
-  const x = mouseX - posizioneComposizioneX;
-  const y = mouseY - posizioneComposizioneY;
-  const clicSuRiquadro = riquadriCliccabili.some(campo =>
+function impostaColoreCampitura(indiceColore) {
+  const colore = paletteColori[indiceColore];
+  const faseTonalita = tempoVariazione * frequenzaVariazioneTonalita + colore.fase;
+  const faseSaturazione = (1 - cos(
+    tempoVariazione * frequenzaVariazioneSaturazione + colore.fase
+  )) / 2;
+  if (indiceColore === indiceColoreGrigio) {
+    const luminosita = luminositaGrigioVivido
+      + (luminositaGrigioSpento - luminositaGrigioVivido) * faseSaturazione;
+    fill(0, 0, luminosita);
+  } else {
+    const tonalita = (
+      colore.tono
+      + scartoTonalitaIniziale
+      + ampiezzaVariazioneTonalita * sin(faseTonalita)
+      + giroTonalita
+    ) % giroTonalita;
+    const saturazione = saturazioneVivida
+      + (saturazioneSpenta - saturazioneVivida) * faseSaturazione;
+    fill(tonalita, saturazione, colore.luminosita);
+  }
+}
+
+function mouseSuRiquadroCliccabile() {
+  const x = (mouseX - posizioneComposizioneX) / scalaComposizione;
+  const y = (mouseY - posizioneComposizioneY) / scalaComposizione;
+  return riquadriCliccabili.some(campo =>
     x >= campo.x &&
     x <= campo.x + campo.larghezza &&
     y >= campo.y &&
     y <= campo.y + campo.altezza
   );
+}
 
-  if (clicSuRiquadro) {
+function mousePressed() {
+  if (mouseSuRiquadroCliccabile()) {
     rotazioneOrdineColori = (rotazioneOrdineColori + 1) % paletteColori.length;
+    clicSuRiquadriNeri++;
     direzioneVariazioneTemporale *= -1;
   }
 }

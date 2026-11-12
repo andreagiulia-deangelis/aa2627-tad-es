@@ -9,6 +9,7 @@ body {
   flex-direction: column;
   justify-content: safe center;
   align-items: safe center;
+  background-color: #f2f2f2;
 }
 
 canvas {
