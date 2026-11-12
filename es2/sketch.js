@@ -66,8 +66,8 @@ const campitureGrigie = [
 const riquadriColorati = campitureColorate.concat(campitureGrigie);
 
 const campitureNere = [
-  { x: 71, y: 352, larghezza: 147, altezza: 139 },
-  { x: 218, y: 492, larghezza: 307, altezza: 37 }
+  { x: 71, y: 352, larghezza: 147, altezza: 139, indiceColore: 0 },
+  { x: 218, y: 492, larghezza: 307, altezza: 37, indiceColore: 1 }
 ];
 
 const riquadriCliccabili = riquadriColorati.concat(campitureNere);
@@ -95,7 +95,8 @@ const lineeVerticali = [
 let scartoTonalitaIniziale;
 let rotazioneOrdineColori = 0;
 let tempoVariazione = 0;
-let clicSuRiquadriNeri = 0;
+let posizioneRiquadroNero = -1;
+let neroSpostato = false;
 
 function setup() {
   createCanvas(larghezzaTela, altezzaTela);
@@ -116,13 +117,12 @@ function draw() {
   fill(0, 0, luminositaCarta);
   rect(posizioneComposizioneX, posizioneComposizioneY, dimensioneComposizione, dimensioneComposizione);
 
-  for (let indiceCampo = 0; indiceCampo < campitureNere.length; indiceCampo++) {
-    const campo = campitureNere[indiceCampo];
-    const indiceCampoNero = clicSuRiquadriNeri % 2 === 1 ? 1 : 0;
-    if (clicSuRiquadriNeri === 0 || indiceCampo === indiceCampoNero) {
+  for (const campo of campitureNere) {
+    if (!neroSpostato) {
       fill(0, 0, luminositaNero);
     } else {
-      impostaColoreCampitura((clicSuRiquadriNeri - 1) % paletteColori.length);
+      const indiceColore = (campo.indiceColore + rotazioneOrdineColori) % paletteColori.length;
+      impostaColoreCampitura(indiceColore);
     }
     rect(
       posizioneComposizioneX + campo.x,
@@ -135,6 +135,17 @@ function draw() {
   for (const campo of riquadriColorati) {
     const indiceColore = (campo.indiceColore + rotazioneOrdineColori) % paletteColori.length;
     impostaColoreCampitura(indiceColore);
+    rect(
+      posizioneComposizioneX + campo.x,
+      posizioneComposizioneY + campo.y,
+      campo.larghezza,
+      campo.altezza
+    );
+  }
+
+  if (neroSpostato) {
+    const campo = riquadriCliccabili[posizioneRiquadroNero];
+    fill(0, 0, luminositaNero);
     rect(
       posizioneComposizioneX + campo.x,
       posizioneComposizioneY + campo.y,
@@ -203,7 +214,8 @@ function mouseSuRiquadroCliccabile() {
 function mousePressed() {
   if (mouseSuRiquadroCliccabile()) {
     rotazioneOrdineColori = (rotazioneOrdineColori + 1) % paletteColori.length;
-    clicSuRiquadriNeri++;
+    posizioneRiquadroNero = (posizioneRiquadroNero + 1) % riquadriCliccabili.length;
+    neroSpostato = true;
     direzioneVariazioneTemporale *= -1;
   }
 }
