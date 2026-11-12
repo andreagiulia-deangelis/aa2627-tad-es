@@ -21,7 +21,7 @@ const luminositaBlu = 30;
 const luminositaGrigioVivido = 82;
 const luminositaGrigioSpento = 68;
 const luminositaSfondo = 88;
-const luminositaCarta = 97;
+const luminositaCarta = 94;
 const luminositaNero = 5;
 const tonoRosso = 0;
 const tonoGiallo = 42;
@@ -114,7 +114,7 @@ function draw() {
   scale(scalaComposizione);
   background(0, 0, luminositaSfondo);
   noStroke();
-  fill(0, 0, luminositaCarta);
+  fill(40, 12, luminositaCarta);
   rect(posizioneComposizioneX, posizioneComposizioneY, dimensioneComposizione, dimensioneComposizione);
 
   for (const campo of campitureNere) {
