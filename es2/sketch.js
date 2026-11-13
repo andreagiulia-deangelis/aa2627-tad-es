@@ -20,7 +20,7 @@ const luminositaGiallo = 45;
 const luminositaBlu = 30;
 const luminositaGrigioVivido = 82;
 const luminositaGrigioSpento = 68;
-const luminositaSfondo = 88;
+const luminositaSfondo = 100;
 const luminositaCarta = 94;
 const luminositaNero = 5;
 const tonoRosso = 0;
@@ -115,7 +115,7 @@ function draw() {
   background(0, 0, luminositaSfondo);
   noStroke();
   fill(40, 12, luminositaCarta);
-  rect(posizioneComposizioneX, posizioneComposizioneY, dimensioneComposizione, dimensioneComposizione);
+  rect(0, 0, dimensioneComposizione, dimensioneComposizione);
 
   for (const campo of campitureNere) {
     if (!neroSpostato) {
@@ -125,8 +125,8 @@ function draw() {
       impostaColoreCampitura(indiceColore);
     }
     rect(
-      posizioneComposizioneX + campo.x,
-      posizioneComposizioneY + campo.y,
+      campo.x,
+      campo.y,
       campo.larghezza,
       campo.altezza
     );
@@ -136,8 +136,8 @@ function draw() {
     const indiceColore = (campo.indiceColore + rotazioneOrdineColori) % paletteColori.length;
     impostaColoreCampitura(indiceColore);
     rect(
-      posizioneComposizioneX + campo.x,
-      posizioneComposizioneY + campo.y,
+      campo.x,
+      campo.y,
       campo.larghezza,
       campo.altezza
     );
@@ -147,8 +147,8 @@ function draw() {
     const campo = riquadriCliccabili[posizioneRiquadroNero];
     fill(0, 0, luminositaNero);
     rect(
-      posizioneComposizioneX + campo.x,
-      posizioneComposizioneY + campo.y,
+      campo.x,
+      campo.y,
       campo.larghezza,
       campo.altezza
     );
@@ -157,8 +157,8 @@ function draw() {
   fill(0, 0, luminositaNero);
   for (const linea of lineeOrizzontali) {
     rect(
-      posizioneComposizioneX + linea.x,
-      posizioneComposizioneY + linea.y - linea.spessore / 2,
+      linea.x,
+      linea.y - linea.spessore / 2,
       linea.larghezza,
       linea.spessore
     );
@@ -166,8 +166,8 @@ function draw() {
 
   for (const linea of lineeVerticali) {
     rect(
-      posizioneComposizioneX + linea.x - linea.spessore / 2,
-      posizioneComposizioneY + linea.y,
+      linea.x - linea.spessore / 2,
+      linea.y,
       linea.spessore,
       linea.altezza
     );
